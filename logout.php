@@ -1,6 +1,7 @@
 <?php
 // Start the session
-session_start();
+require_once __DIR__ . '/security.php';
+require_post_request();
 
 // Unset all of the session variables.
 $_SESSION = array();

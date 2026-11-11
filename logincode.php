@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/security.php';
+require_post_request();
 
 // Redirect to body.php if user is already logged in
 if (isset($_SESSION['user_data'])) {
@@ -52,7 +53,8 @@ $_SESSION['user_data'] = [
 ];
         
                 // Regenerate session ID for security
-                session_regenerate_id();
+                session_regenerate_id(true);
+                $_SESSION['_csrf'] = bin2hex(random_bytes(32));
         
                 // Redirect to body.php after successful login
                 header("Location: body.php");

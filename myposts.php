@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/security.php';
 require 'db_connect.php'; // Ensure your db_connect.php correctly sets up the database connection.
 
 if (!isset($_SESSION['user_data'])) {
@@ -36,8 +36,7 @@ echo '<!DOCTYPE html>
 
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
-        $imagePath = $row['image'] ? 'uploads/' . $row['image'] : 'images/default.png';
-        $imagePath = str_replace('uploads/uploads/', 'uploads/', $imagePath);
+        $imagePath = $row['image'] ?: 'images/default.png';
 
         echo '<div class="bg-gray-100 rounded-lg shadow-xl overflow-hidden">
                 <img class="w-full h-64 object-cover" src="' . htmlspecialchars($imagePath) . '" alt="Post Image">

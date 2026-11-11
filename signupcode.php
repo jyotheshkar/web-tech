@@ -1,7 +1,10 @@
 <?php
+require_once __DIR__ . '/security.php';
+require_post_request();
 // Server errors belong in logs, not in HTTP responses.
 
 // Database connection
+require __DIR__ . '/uploads.php';
 require __DIR__ . '/db_connect.php';
 
 // Check if form is submitted
@@ -35,7 +38,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     }
 
     // Process file upload and get file path
-    $target_file = processFileUpload();
+    try { $target_file = store_uploaded_image('profilePic'); }
+    catch (InvalidArgumentException $error) { reject_request($error->getMessage(), 400); }
+    catch (Throwable $error) { error_log('Image storage unavailable'); reject_request('Image storage unavailable.', 503); }
 
     // Insert user data into database using prepared statement
     $stmt = $conn->prepare("INSERT INTO Users (FirstName, LastName, Email, Password, Birthday, Gender, Username, Profile_Pic) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
@@ -44,7 +49,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         header("Location: login.php"); // Redirect to login page after successful registration
         exit();
     } else {
-        echo "Error: " . $stmt->error;
+        error_log('Registration insert failed');
+        reject_request('Unable to create account.', 500);
     }
     $stmt->close();
 }
@@ -52,41 +58,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 // Close connection
 $conn->close();
 
-function processFileUpload() {
-    $defaultImagePath = 'images/default.png';  // Default path if no image is uploaded
-
-    if (isset($_FILES['profilePic']) && $_FILES['profilePic']['error'] === 0) {
-        $target_dir = "uploads/";
-        $file_ext = strtolower(pathinfo($_FILES["profilePic"]["name"], PATHINFO_EXTENSION));
-        $allowed_types = array('jpg', 'png', 'jpeg', 'gif');
-
-        if (in_array($file_ext, $allowed_types)) {
-            $new_filename = uniqid('', true) . '.' . $file_ext; // Generate unique file name
-            $target_file = $target_dir . $new_filename;
-
-            if (!file_exists($target_dir)) {
-                if (!mkdir($target_dir, 0755, true)) {
-                    error_log("Failed to create directory: $target_dir");
-                    echo "Failed to create directory for uploads.";
-                    return $defaultImagePath;
-                }
-            }
-
-            if (move_uploaded_file($_FILES["profilePic"]["tmp_name"], $target_file)) {
-                echo "The file has been uploaded successfully.";
-                return $target_file;
-            } else {
-                error_log("Error moving uploaded file: $target_file");
-                echo "Sorry, there was an error uploading your file.";
-                return $defaultImagePath;
-            }
-        } else {
-            echo "Invalid file type.";
-            return $defaultImagePath;
-        }
-    } else {
-        echo "No file was uploaded.";
-        return $defaultImagePath;
-    }
-}
-?>
