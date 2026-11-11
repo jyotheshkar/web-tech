@@ -1,6 +1,5 @@
-<!-- body.php -->
 <?php
-session_start();
+require_once __DIR__ . '/security.php';
 
 // Prevent page caching
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -59,6 +58,7 @@ if (isset($_SESSION['user_data'])) {
 
         <!-- Posts Button Form -->
 <form action="posts.php" method="post" class="flex justify-center my-8">
+<?php echo csrf_field(); ?>
     <button type="submit" name="posts" class="flex mr-2 justify-center items-center px-4 py-2 text-gray-700 hover:text-gray-100 transition-colors duration-300 transform rounded-lg bg-gray-100 hover:bg-gray-800">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M19 11H5M19 11C20.1046 11 21 11.8954 21 13V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V13C3 11.8954 3.89543 11 5 11M19 11V9C19 7.89543 18.1046 7 17 7M5 11V9C5 7.89543 5.89543 7 7 7M7 7V5C7 3.89543 7.89543 3 9 3H15C16.1046 3 17 3.89543 17 5V7M7 7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -69,6 +69,7 @@ if (isset($_SESSION['user_data'])) {
 
 <!-- Friends Button Form -->
 <form action="friends.php" method="post" class="flex justify-center my-8">
+<?php echo csrf_field(); ?>
     <button type="submit" name="friends" class="flex ml-2 justify-center items-center px-4 py-2 text-gray-700 hover:text-gray-100 transition-colors duration-300 transform rounded-lg bg-gray-100 hover:bg-gray-800">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -81,6 +82,7 @@ if (isset($_SESSION['user_data'])) {
             
         </div>
         <form action="myposts.php" method="post" class="flex justify-center ">
+<?php echo csrf_field(); ?>
     <button type="submit" name="myposts" class="flex justify-center items-center px-4 py-2 text-gray-700 hover:text-gray-100 transition-colors duration-300 transform rounded-lg bg-gray-100 hover:bg-gray-800 ">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M3 4C3 3.44772 3.44772 3 4 3H10C10.5523 3 11 3.44772 11 4V10C11 10.5523 10.5523 11 10 11H4C3.44772 11 3 10.5523 3 10V4ZM13 3C13 3.55228 13.4477 4 14 4H20C20.5523 4 21 3.55228 21 3V9C21 9.55228 20.5523 10 20 10H14C13.4477 10 13 9.55228 13 9V3ZM3 13C3 12.4477 3.44772 12 4 12H10C10.5523 12 11 12.4477 11 13V19C11 19.5523 10.5523 20 10 20H4C3.44772 20 3 19.5523 3 19V13ZM14 13C14 12.4477 14.4477 12 15 12H21C21.5523 12 22 12.4477 22 13V19C22 19.5523 21.5523 20 21 20H15C14.4477 20 14 19.5523 14 19V13Z" fill="currentColor"/>
@@ -90,6 +92,7 @@ if (isset($_SESSION['user_data'])) {
 </form>
         <!-- Logout button -->
         <form action="logout.php" method="post" class="flex justify-center mt-12">
+<?php echo csrf_field(); ?>
             <button type="submit" name="logout" class="flex justify-center items-center px-4 py-2 text-gray-100 bg-gray-900 transition-colors duration-300 transform rounded-lg dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 hover:text-gray-700">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -105,3 +108,4 @@ if (isset($_SESSION['user_data'])) {
 
 </body>
 </html>
+

@@ -1,6 +1,5 @@
-<!-- posts.php -->
 <?php
-session_start();
+require_once __DIR__ . '/security.php';
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
@@ -98,7 +97,9 @@ if (isset($_POST['delete']) && $_POST['delete'] == 1) {
             } catch (mysqli_sql_exception $exception) {
                 // Rollback transaction if something goes wrong
                 $conn->rollback();
-                echo "Error deleting post: " . $exception->getMessage();
+                error_log('Post deletion transaction failed');
+                http_response_code(500);
+                echo 'Unable to delete post.';
             }
         }
     }
@@ -142,6 +143,7 @@ if (isset($_POST['delete']) && $_POST['delete'] == 1) {
     <!-- White background section for the form -->
     <div class="bg-white p-6 rounded-b-lg">
         <form action="submit_post.php" method="post" enctype="multipart/form-data" class="space-y-4">
+<?php echo csrf_field(); ?>
             <div class="flex items-center">
                 <i class="fas fa-pencil-alt text-gray-900 mr-2"></i>
                 <label for="postContent" class="block text-sm font-medium text-gray-700">What's on your mind?</label>
@@ -195,6 +197,7 @@ if ($result->num_rows > 0) {
 
 if ($row['user_id'] == $_SESSION['user_data']['user_id']) {
     echo "<form method='post' action='' class='delete-form absolute right-2 top-2'>";
+echo csrf_field();
     echo "<input type='hidden' name='delete' value='1'>";
     echo "<input type='hidden' name='post_id' value='" . $row['post_id'] . "'>";
     echo "<button type='submit' class='text-gray-600 hover:text-gray-800'>";
@@ -218,6 +221,7 @@ if ($row['user_id'] == $_SESSION['user_data']['user_id']) {
 // Like/Unlike and Comment form
 echo "<div class='flex flex-col sm:flex-row justify-between  mt-4'>";
 echo "<form method='post' action='' class='flex-grow mb-2 sm:mb-0' data-action='like' data-post-id='" . $row['post_id'] . "'>";
+echo csrf_field();
 
 echo "<input type='hidden' name='post_id' value='" . $row['post_id'] . "'>";
 if ($is_liked) {
@@ -228,6 +232,7 @@ if ($is_liked) {
 echo "</form>";
 
 echo "<form method='post' action='' class='flex-grow' data-action='comment' data-post-id='" . $row['post_id'] . "'>";
+echo csrf_field();
 echo "<input type='hidden' name='post_id' value='" . $row['post_id'] . "'>";
 echo "<input type='text' name='comment_content' id='commentContent' placeholder='Write a comment...' required oninvalid=\"this.setCustomValidity('Please write something in the comment!')\" oninput=\"this.setCustomValidity('')\" class='border border-gray-300 p-2 rounded flex-grow mb-2 sm:mb-0 mr-2'>";
 echo "<button type='submit' name='comment' class='bg-gray-900 text-white font-bold py-2 px-4 rounded'><i class='far fa-comment'></i> Comment</button>";
@@ -257,140 +262,25 @@ echo "</div>"; // End of flex container
 }
 
 
-if (isset($_POST['delete']) && $_POST['delete'] == 1) {
-    $post_id = $_POST['post_id'];
-    $user_id = $_SESSION['user_data']['user_id'];
-
-    // Optional: Verify that the user attempting to delete the post is the owner
-    $verify_sql = "SELECT user_id FROM posts WHERE post_id = ?";
-    $verify_stmt = $conn->prepare($verify_sql);
-    $verify_stmt->bind_param("i", $post_id);
-    $verify_stmt->execute();
-    $verify_result = $verify_stmt->get_result();
-    if ($verify_data = $verify_result->fetch_assoc()) {
-        if ($verify_data['user_id'] == $user_id) {
-            // Start transaction
-            $conn->begin_transaction();
-
-            try {
-                // Delete likes
-                $delete_likes_sql = "DELETE FROM likes WHERE post_id = ?";
-                $delete_likes_stmt = $conn->prepare($delete_likes_sql);
-                $delete_likes_stmt->bind_param("i", $post_id);
-                $delete_likes_stmt->execute();
-                $delete_likes_stmt->close();
-
-                // Delete comments
-                $delete_comments_sql = "DELETE FROM comments WHERE post_id = ?";
-                $delete_comments_stmt = $conn->prepare($delete_comments_sql);
-                $delete_comments_stmt->bind_param("i", $post_id);
-                $delete_comments_stmt->execute();
-                $delete_comments_stmt->close();
-
-                // Delete the post
-                $delete_sql = "DELETE FROM posts WHERE post_id = ?";
-                $delete_stmt = $conn->prepare($delete_sql);
-                $delete_stmt->bind_param("i", $post_id);
-                $delete_stmt->execute();
-                $delete_stmt->close();
-
-                // Commit transaction
-                $conn->commit();
-
-                // Redirect or output success message
-                echo "<script>alert('Post deleted successfully!'); window.location.href='posts.php';</script>";
-            } catch (mysqli_sql_exception $exception) {
-                // Rollback transaction if something goes wrong
-                $conn->rollback();
-                echo "Error deleting post: " . $exception->getMessage();
-            }
-        }
-    }
-    $verify_stmt->close();
-}
-
-
-
 ?>
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    event.preventDefault();
-    // Function to handle like/unlike and comment asynchronously
-    function handleInteraction(action, postId) {
-        event.preventDefault();
-        // Find the form corresponding to the action
-        const form = document.querySelector(`form[data-action="${action}"][data-post-id="${postId}"]`);
-        
-        // Serialize form data
-        const formData = new FormData(form);
-
-        // Send asynchronous request
-        fetch(form.action, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-            // Update UI if needed
-            console.log(data); // Log response for debugging
-            // You can update UI here if necessary, like updating the like count or refreshing the comments
-            // For now, let's refresh the page after an interaction to see the changes
-            window.location.reload();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-
-    // Add event listener to all like and comment buttons
-    document.querySelectorAll('.like-button, .comment-button').forEach(button => {
-        event.preventDefault();
-        button.addEventListener('click', function(event) {
-            // Prevent default button click behavior
-            event.preventDefault();
-
-            // Get the action (like or comment) and post ID from the button's data attributes
-            const action = this.dataset.action;
-            const postId = this.dataset.postId;
-
-            // Call the handleInteraction function with the action and post ID
-            handleInteraction(action, postId);
-        });
-    });
-
-    // Add event listener to all forms with the class 'delete-form'
-    document.querySelectorAll('.delete-form').forEach(form => {
-        form.addEventListener('submit', function(event) {
-            // Show confirmation dialog
-            var confirmDeletion = confirm("Are you sure you want to delete this post?");
-            if (!confirmDeletion) {
-                // If the user clicks 'Cancel', prevent the form from submitting
-                event.preventDefault();
-            }
-        });
+document.querySelectorAll('.delete-form').forEach(form => {
+    form.addEventListener('submit', event => {
+        if (!confirm('Are you sure you want to delete this post?')) event.preventDefault();
     });
 });
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var commentForm = document.querySelector('form[data-action="comment"]');
-    commentForm.addEventListener('submit', function(event) {
-        var commentInput = document.getElementById('commentContent');
-        if (commentInput.value.trim() === '') {
-            event.preventDefault(); // Stop the form from submitting
-            alert('Please type something in the comment!'); // Alert the user
-            commentInput.focus(); // Optionally, put the focus back to the comment input
+document.querySelectorAll('form[data-action="comment"]').forEach(form => {
+    form.addEventListener('submit', event => {
+        const input = form.querySelector('input[name="comment_content"]');
+        if (input && input.value.trim() === '') {
+            event.preventDefault();
+            input.focus();
         }
     });
 });
 </script>
-
-
-
 
 </body>
 </html>

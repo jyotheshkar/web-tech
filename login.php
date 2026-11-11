@@ -1,8 +1,5 @@
-<!-- login.php -->
-
-
 <?php
-session_start();
+require_once __DIR__ . '/security.php';
 
 if (isset($_SESSION['user_data'])) {
     header("Location: body.php");
@@ -81,7 +78,8 @@ header("Pragma: no-cache");
         Welcome to Friendzone!
       </p>
 
-      <form method="post" method="post" action="logincode.php" class="mt-4">
+      <form method="post" action="logincode.php" class="mt-4">
+<?php echo csrf_field(); ?>
         <div class="mt-4">
           <label class="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200" for="LoggingEmailAddress">Email Address</label>
           <input id="LoggingEmailAddress" name="email" class="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300" type="email" />
@@ -131,6 +129,7 @@ header("Pragma: no-cache");
       </button>
       <h2 class="text-2xl font-semibold mb-4">Sign Up</h2>
       <form method="post" action="signupcode.php" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<?php echo csrf_field(); ?>
         <div>
           <label for="username" class="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">Username</label>
           <input id="username" name="username" type="text" class="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg focus:outline-none" required>

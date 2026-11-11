@@ -1,6 +1,6 @@
-<!-- logincode.php -->
 <?php
-session_start();
+require_once __DIR__ . '/security.php';
+require_post_request();
 
 // Redirect to body.php if user is already logged in
 if (isset($_SESSION['user_data'])) {
@@ -13,21 +13,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     // Ensure email and password are provided
     if (!empty($_POST['email']) && !empty($_POST['password'])) {
         // Database connection parameters
-        $servername = "localhost";
-        $username = "root";
-        $password = "";  // Assuming no password for localhost
-        $database = "friendzone_db";
-
-        // Create connection
-        $conn = new mysqli($servername, $username, $password, $database);
-
-        // Check connection
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
+        require __DIR__ . '/db_connect.php';
 
         // Escape user inputs for security
-        $email = $conn->real_escape_string($_POST['email']);
+        $email = $_POST['email'];
         $userInputPassword = $_POST['password']; // Use another variable to hold user input
 
         // Query to check if email exists in the database
@@ -64,7 +53,8 @@ $_SESSION['user_data'] = [
 ];
         
                 // Regenerate session ID for security
-                session_regenerate_id();
+                session_regenerate_id(true);
+                $_SESSION['_csrf'] = bin2hex(random_bytes(32));
         
                 // Redirect to body.php after successful login
                 header("Location: body.php");

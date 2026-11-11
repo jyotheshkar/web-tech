@@ -1,0 +1,28 @@
+name: Maintenance checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: maintenance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  focused-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: gd, fileinfo, mysqli
+      - run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - run: python tests/source_checks.py
+      - run: php tests/security_contracts.php
+      - run: python tests/http_security_tests.py -v

@@ -1,8 +1,6 @@
-
-<!-- friends.php -->
 <?php
 // Start the session
-session_start();
+require_once __DIR__ . '/security.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_data'])) {
@@ -11,17 +9,7 @@ if (!isset($_SESSION['user_data'])) {
     exit;
 }
 
-$servername = "localhost";
-$username = "root";
-$password = "";  // Assuming no password for localhost
-$database = "friendzone_db";
-
-$conn = new mysqli($servername, $username, $password, $database);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require __DIR__ . '/db_connect.php';
 
 // Initialize search query
 $search = $_GET['search'] ?? '';
@@ -102,3 +90,4 @@ if ($result && $result->num_rows > 0) {
 
 </body>
 </html>
+
