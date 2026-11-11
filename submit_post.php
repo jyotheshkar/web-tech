@@ -1,4 +1,3 @@
-<!-- submit_post.php -->
 <?php
 session_start(); // Start the session at the beginning
 include 'db_connect.php'; // Include your database connection script
@@ -57,3 +56,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['postImage']) && isset
     echo "Invalid request.";
 }
 ?>
+

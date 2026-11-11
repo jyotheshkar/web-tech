@@ -1,4 +1,3 @@
-<!-- myposts.php -->
 <?php
 session_start();
 require 'db_connect.php'; // Ensure your db_connect.php correctly sets up the database connection.
@@ -60,3 +59,4 @@ echo '        </div>
 $stmt->close();
 $conn->close();
 ?>
+

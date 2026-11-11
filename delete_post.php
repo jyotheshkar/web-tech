@@ -1,5 +1,3 @@
-<!-- delete_post.php -->
-
 <?php
 header('Content-Type: application/json');
 session_start();
@@ -12,7 +10,7 @@ require 'db_connect.php'; // Adjust this path as necessary.
 
 // Read the JSON input from the request body
 $input = json_decode(file_get_contents("php://input"), true);
-file_put_contents("debug.txt", print_r($input, true)); // This will write the input data to debug.txt file for inspection.
+// Do not persist request payloads or session-related data in a web-readable file.
 
 
 // Ensure the user is logged in

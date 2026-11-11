@@ -1,20 +1,8 @@
-<!-- signupcode.php -->
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Server errors belong in logs, not in HTTP responses.
 
 // Database connection
-$servername = "localhost";
-$username = "root";
-$password = "";  // Assuming no password for localhost
-$database = "friendzone_db";
-
-$conn = new mysqli($servername, $username, $password, $database);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require __DIR__ . '/db_connect.php';
 
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
