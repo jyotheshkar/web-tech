@@ -95,6 +95,17 @@ class HttpSecurityTests(unittest.TestCase):
         outsider=build_opener()
         with self.assertRaises(HTTPError) as caught: outsider.open(self.base+image)
         self.assertEqual(caught.exception.code,401)
+    def test_failed_insert_cleanup_removes_only_new_upload(self):
+        _,_,body=self.request('tests/upload_harness.php')
+        token=json.loads(body)['token']
+        boundary='cleanup-boundary'
+        body=(f'--{boundary}\r\nContent-Disposition: form-data; name="_csrf"\r\n\r\n{token}\r\n'
+              f'--{boundary}\r\nContent-Disposition: form-data; name="fixture"; filename="image.png"\r\nContent-Type: image/png\r\n\r\n').encode()+PNG+f'\r\n--{boundary}--\r\n'.encode()
+        status,_,response=self.request('tests/upload_harness.php?discard=1',body,{'Content-Type':f'multipart/form-data; boundary={boundary}'})
+        self.assertEqual(status,200,response)
+        image=json.loads(response)['image']
+        status,_,_=self.request(image)
+        self.assertEqual(status,404)
     def test_media_denies_unauthenticated_requests(self):
         status,_,_=self.request('media.php?file='+'a'*32+'.png')
         self.assertEqual(status,401)

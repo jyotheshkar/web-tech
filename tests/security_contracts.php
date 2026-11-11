@@ -48,6 +48,12 @@ try {
     rejects(fn() => upload_directory(), 'Web-root upload storage rejected');
     putenv('UPLOAD_DIRECTORY=' . $directory);
     check(upload_directory() === realpath($directory), 'Private external storage accepted');
+    $existing = $directory . '/' . str_repeat('a', 32) . '.png';
+    file_put_contents($existing, 'existing');
+    discard_new_uploaded_image('media.php?file=' . basename($existing));
+    discard_new_uploaded_image('images/default.png');
+    check(file_exists($existing), 'Cleanup cannot delete pre-existing or default media');
+    unlink($existing);
 } finally {
     unlink($path); rmdir($directory); putenv('UPLOAD_DIRECTORY');
 }

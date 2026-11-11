@@ -38,6 +38,20 @@ function upload_directory(bool $create = true): string {
     return $directory;
 }
 
+// Track only files created in this PHP request; caller input cannot delete older media.
+function &new_uploads(): array {
+    static $created = [];
+    return $created;
+}
+
+function discard_new_uploaded_image(string $uri): void {
+    $created = &new_uploads();
+    if (!isset($created[$uri])) return;
+    $path = $created[$uri];
+    unset($created[$uri]);
+    if (is_file($path) && !is_link($path)) unlink($path);
+}
+
 function store_uploaded_image(string $field): string {
     if (!isset($_FILES[$field])) {
         return 'images/default.png';
@@ -71,7 +85,10 @@ function store_uploaded_image(string $field): string {
             if (!imagepng($image, $stream)) throw new RuntimeException('Unable to encode image.');
         } finally { fclose($stream); }
         chmod($path, 0600);
-        return 'media.php?file=' . $filename;
+        $uri = 'media.php?file=' . $filename;
+        $created = &new_uploads();
+        $created[$uri] = $path;
+        return $uri;
     } catch (Throwable $error) {
         if ($path !== null && is_file($path)) unlink($path);
         throw $error;

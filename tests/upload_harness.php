@@ -10,5 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 require_post_request();
-try { echo json_encode(['image' => store_uploaded_image('fixture')]); }
+try {
+    $uri = store_uploaded_image('fixture');
+    if (isset($_GET['discard'])) discard_new_uploaded_image($uri);
+    echo json_encode(['image' => $uri]);
+}
 catch (InvalidArgumentException $error) { reject_request($error->getMessage(), 400); }
